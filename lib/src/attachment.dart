@@ -12,11 +12,13 @@
 
 library emailer.attachment;
 
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:cryptoutils/cryptoutils.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart';
+
+const Base64Encoder _base64enc = const Base64Encoder();
 
 /**
  * Represents a single email attachment.
@@ -51,12 +53,13 @@ class Attachment {
   List<int> get bytes => _data != null ? _data : _file.readAsBytesSync();
 
   /**
-   * Return the attachment content as a Base64 encoded string, broken into 76
-   * character blocks, each separated by a "\r\n".
+   * Return the attachment content as a Base64 encoded string,
+   *
+   * TODO: break into 76 character blocks, each separated by a "\r\n".
    */
   String get content => _data != null
-      ? CryptoUtils.bytesToBase64(_data, false, true)
-      : CryptoUtils.bytesToBase64(_file.readAsBytesSync(), false, true);
+      ? _base64enc.convert(_data)
+      : _base64enc.convert(_file.readAsBytesSync());
 
   /**
    * Return the attachment filename.
@@ -67,7 +70,7 @@ class Attachment {
    * Return the MIME type for [path].
    */
   String _getMimeType(String path) {
-    final mtype = lookupMimeType(path);
+    final String mtype = lookupMimeType(path);
     return mtype != null ? mtype : 'application/octet-stream';
   }
 

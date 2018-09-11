@@ -17,8 +17,10 @@ import 'dart:math' show Random;
 
 import 'attachment.dart';
 
-import 'package:cryptoutils/cryptoutils.dart';
 import 'package:intl/intl.dart';
+
+const Utf8Codec _uft8 = const Utf8Codec();
+const Base64Encoder _base64enc = const Base64Encoder();
 
 /**
  * The kinds of emails this library supports.
@@ -74,7 +76,7 @@ class Address {
   /**
    * Remove linefeeds, tabs and potentially harmful characters from [value].
    */
-  _sanitize(String value) {
+  String _sanitize(String value) {
     if (value == null) {
       return '';
     }
@@ -91,20 +93,20 @@ class Address {
  * Recipients are defined as lists of [Address]'s.
  */
 class Email {
-  final List<Attachment> attachments = [];
-  final List<Address> _ccRecipients = [];
+  final List<Attachment> attachments = <Attachment>[];
+  final List<Address> _ccRecipients = <Address>[];
   int _counter = 0;
   String customMessageId = '';
-  Encoding encoding = UTF8;
+  Encoding encoding = _uft8;
   final String fqdnSendingHost;
   final Address from;
   final String identityString = 'dart-emailer';
   String partHtml;
   String partText;
-  final List<Address> _recipients = [];
+  final List<Address> _recipients = <Address>[];
   String subject;
-  final List<Address> _toRecipients = [];
-  final Map<String, String> _xHeaders = new Map<String, String>();
+  final List<Address> _toRecipients = <Address>[];
+  final Map<String, String> _xHeaders = <String, String>{};
 
   /**
    * Constructor.
@@ -198,7 +200,7 @@ class Email {
   void _addSubject(StringBuffer sb) {
     if (subject != null && subject.isNotEmpty) {
       final String b64 =
-          CryptoUtils.bytesToBase64(UTF8.encode(subject), false, true);
+          _base64enc.convert(_uft8.encode(subject));
       final List<String> b64List = b64.split('\r\n');
       sb.writeln(
           'Subject: ${b64List.map((value) => '=?utf-8?B?${value}?=').join('\r\n ')}');
@@ -436,7 +438,7 @@ class Email {
  * Return the BASE64 for [input]. Expects input to be UTF-8.
  */
 String _encode(String input) =>
-    '=?utf-8?B?${CryptoUtils.bytesToBase64(UTF8.encode(input))}?=';
+    '=?utf-8?B?${_base64enc.convert(_uft8.encode(input))}?=';
 
 /**
  * Return an id constructed from a epoch timestamp and a random 32 bit number.

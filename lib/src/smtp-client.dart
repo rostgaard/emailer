@@ -13,13 +13,15 @@
 library emailer.smtpclient;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'email.dart';
 import 'smtp-options.dart';
 
-import 'package:cryptoutils/cryptoutils.dart';
 import 'package:logging/logging.dart';
+
+const Base64Encoder _base64enc = const Base64Encoder();
 
 typedef void SmtpResponseAction(String message);
 
@@ -69,7 +71,7 @@ class SmtpClient {
     }
 
     _currentAction = _actionAuthenticateLoginPassword;
-    sendCommand(CryptoUtils.bytesToBase64(_options.username.codeUnits));
+    sendCommand(_base64enc.convert(_options.username.codeUnits));
   }
 
   /**
@@ -81,7 +83,7 @@ class SmtpClient {
     }
 
     _currentAction = _actionAuthenticateComplete;
-    sendCommand(CryptoUtils.bytesToBase64(_options.password.codeUnits));
+    sendCommand(_base64enc.convert(_options.password.codeUnits));
   }
 
   /**
@@ -154,7 +156,7 @@ class SmtpClient {
   /**
    * If sending the email DATA went OK, move on to closing the connection.
    */
-  _actionFinishEmail(String message) {
+  void _actionFinishEmail(String message) {
     if (message.startsWith('2') == false) {
       throw 'Could not send email: ${message}';
     }
